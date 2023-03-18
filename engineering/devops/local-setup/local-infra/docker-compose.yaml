@@ -1,0 +1,92 @@
+version: '3.4'
+services:
+  foodcart_main_db:
+    image: "sameersbn/postgresql:12-20200524"
+    restart: "always"
+    ports:
+      - "${MAIN_DB_PORT}:5432"
+    #entrypoint: /sbin/entrypoint.sh
+    environment:
+      - "DB_USER=${MAIN_DB_USER}"
+      - "DB_PASS=${MAIN_DB_PASSWORD}"
+      - "DB_NAME=${MASTER_DB_NAME}"
+      - "DB_EXTENSION=pg_trgm,btree_gin,pgcrypto,dblink"
+      - "REPLICATION_USER=${REPLICA_DB_USER}"
+      - "REPLICATION_PASS=${REPLICA_DB_PASSWORD}"
+#    volumes:
+#      - "foodcart_main_postgres_db:/var/lib/postgresql/12/main"
+
+#  foodcart_replica_db:
+#    image: "sameersbn/postgresql:12-20200524"
+#    depends_on:
+#      - "foodcart_main_db"
+#    restart: "always"
+#    ports:
+#      - "${REPLICA_DB_PORT}:5432"
+#    environment:
+#      - "REPLICATION_MODE=slave"
+#      - "REPLICATION_SSLMODE=prefer"
+#      - "REPLICATION_HOST=foodcart_main_db"
+#      - "REPLICATION_PORT=5432"
+#      - "REPLICATION_USER=${REPLICA_DB_USER}"
+#      - "REPLICATION_PASS=${REPLICA_DB_PASSWORD}"
+#    volumes:
+#      - "foodcart_replica_postgres_db:/var/lib/postgresql/12/rep"
+
+  foodcart_redis:
+    image: "redis:alpine"
+    restart: "always"
+    ports:
+      - "${CACHE_PORT}:6379"
+  foodcart_zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    hostname: foodcart-zookeeper
+    container_name: foodcart-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  foodcart_broker:
+    image: confluentinc/cp-kafka:7.2.1
+    hostname: foodcart-broker
+    container_name: foodcart-broker
+    depends_on:
+      - foodcart_zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://foodcart-broker:19092,PLAINTEXT_HOST://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: "foodcart-zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG4J_LOGGERS: "kafka.controller=INFO,kafka.producer.async.DefaultEventHandler=INFO,state.change.logger=INFO"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+  foodcart_schema_registry:
+    image: confluentinc/cp-schema-registry:7.2.1
+    hostname: foodcart-schema-registry
+    container_name: foodcart-schema-registry
+    depends_on:
+      - foodcart_zookeeper
+      - foodcart_broker
+    ports:
+      - "8881:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'foodcart-zookeeper:2181'
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://foodcart-broker:19092'
+      SCHEMA_REGISTRY_LISTENERS: 'http://foodcart-schema-registry:8081'
+
+networks:
+  default:
+    name: foodcart-local-env_default
+
+volumes:
+  foodcart_main_postgres_db:
+  foodcart_replica_postgres_db:
