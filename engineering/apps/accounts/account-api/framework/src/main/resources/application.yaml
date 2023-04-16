@@ -1,0 +1,40 @@
+quarkus:
+  smallrye-openapi:
+    path: /swagger
+
+"%prod":
+  quarkus:
+    datasource:
+      health:
+        enabled: true
+      metrics:
+        enabled: true
+      db-kind: postgresql
+      username: mainuser
+      password: mainuser
+      jdbc:
+        url: jdbc:postgresql://localhost:5300/account
+    hibernate-orm:
+      database:
+        generation: drop-and-create
+
+"%dev":
+  quarkus:
+    datasource:
+      health:
+        enabled: true
+      metrics:
+        enabled: true
+      db-kind: postgresql
+      username: mainuser
+      password: mainuser
+      jdbc:
+        url: jdbc:postgresql://localhost:5300/account
+    hibernate-orm:
+      database:
+        generation: drop-and-create
+
+"%test":
+  quarkus:
+    datasource:
+      db-kind: postgresql

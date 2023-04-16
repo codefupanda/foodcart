@@ -1,0 +1,19 @@
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
+    }
+    plugins {
+        id "io.quarkus" version "3.0.0.Beta1"
+    }
+}
+
+include 'domain'
+include 'application'
+include 'framework'
+
+
+rootProject.name = 'account-api'
+include 'domain'
+

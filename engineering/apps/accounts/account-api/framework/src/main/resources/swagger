@@ -1,0 +1,179 @@
+---
+openapi: 3.0.3
+info:
+  title: account-api API
+  version: 1.0-SNAPSHOT
+paths:
+  /account:
+    get:
+      tags:
+      - Account Resource
+      responses:
+        "200":
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+      - Account Resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        "200":
+          description: OK
+  /account/{accountId}:
+    get:
+      tags:
+      - Account Resource
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Account'
+  /account/{accountId}/addresses:
+    post:
+      tags:
+      - Account Resource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Address'
+      responses:
+        "200":
+          description: OK
+  /account/{accountId}/addresses/{addressId}:
+    get:
+      tags:
+      - Account Resource
+      parameters:
+      - name: accountId
+        in: path
+        required: true
+        schema:
+          format: int64
+          type: integer
+      - name: addressId
+        in: path
+        required: true
+        schema:
+          format: int64
+          type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          format: int64
+          type: integer
+        name:
+          type: string
+        phoneNumbers:
+          type: array
+          items:
+            $ref: '#/components/schemas/PhoneNumber'
+        addresses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+        createdOn:
+          $ref: '#/components/schemas/LocalDate'
+    Address:
+      type: object
+      properties:
+        id:
+          format: int64
+          type: integer
+        accountId:
+          format: int64
+          type: integer
+        address1:
+          type: string
+        address2:
+          type: string
+        address3:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        postalCode:
+          type: string
+        location:
+          $ref: '#/components/schemas/PGpoint'
+        createdOn:
+          $ref: '#/components/schemas/LocalDate'
+    LocalDate:
+      format: date
+      type: string
+      example: 2022-03-10
+    PGpoint:
+      type: object
+      properties:
+        type:
+          type: string
+        "null":
+          type: boolean
+        x:
+          format: double
+          type: number
+        "y":
+          format: double
+          type: number
+        isNull:
+          type: boolean
+        value:
+          type: string
+        location:
+          $ref: '#/components/schemas/Point'
+    PhoneNumber:
+      type: object
+      properties:
+        countryCode:
+          type: string
+        phoneNumber:
+          type: string
+        primary:
+          type: boolean
+        verified:
+          type: boolean
+    Point:
+      type: object
+      properties:
+        x:
+          format: int32
+          type: integer
+        "y":
+          format: int32
+          type: integer
+        location:
+          $ref: '#/components/schemas/Point'
+  securitySchemes:
+    SecurityScheme:
+      type: http
+      description: Authentication
+      scheme: basic

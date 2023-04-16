@@ -7,9 +7,10 @@ services:
       - "${MAIN_DB_PORT}:5432"
     #entrypoint: /sbin/entrypoint.sh
     environment:
+      - "PG_PASSWORD=postgres"
       - "DB_USER=${MAIN_DB_USER}"
       - "DB_PASS=${MAIN_DB_PASSWORD}"
-      - "DB_NAME=${MASTER_DB_NAME}"
+      - "DB_NAME=${MASTER_DB_NAME},${ACCOUNT_DB_NAME}"
       - "DB_EXTENSION=pg_trgm,btree_gin,pgcrypto,dblink"
       - "REPLICATION_USER=${REPLICA_DB_USER}"
       - "REPLICATION_PASS=${REPLICA_DB_PASSWORD}"
